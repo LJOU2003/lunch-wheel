@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Food Pro (@By LJOU)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-body: #FFFBF7; --bg-card: #FFFFFF; --bg-input: #FFF7ED;
+            --primary: #F97316; --primary-hover: #EA580C;
+            --primary-gradient: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+            --text-main: #2D1A12; --text-body: #4A4542; --text-muted: #88807B;
+            --danger: #DC2626; --google-green: #34A853; --share-purple: #8B5CF6;
+            --price-1: #10B981; --price-2: #F59E0B; --price-3: #EF4444;
+            --glass-bg: rgba(255, 255, 255, 0.85); 
+            --glass-border: 1px solid rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --backdrop-blur: blur(12px);
+            --border: #E7E5E4; --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 20, 7, 0.05), 0 2px 4px -2px rgba(67, 20, 7, 0.05);
+            --header-height: 60px; --sidebar-width: 280px;
+            --slot-bg: #FFEDD5; --slot-border: #F97316; --slot-inner-border: #431407;
+            --slot-height: 200px; --item-height: 100px;
+            --scratch-red: #C0392B;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0F172A; --bg-card: #1E293B; --bg-input: #334155;
+            --primary: #FB923C; --primary-gradient: linear-gradient(135deg, #FB923C 0%, #EA580C 100%);
+            --text-main: #74a2d1; --text-body: #CBD5E1; --text-muted: #94A3B8;
+            --glass-bg: rgba(30, 41, 59, 0.85); --glass-border: 1px solid rgba(255, 255, 255, 0.15);
+            --border: #475569; --slot-bg: #334155; --slot-border: #FB923C;
+            --slot-inner-border: #020617; --scratch-red: #8B0000;
+        }
+
+        html, body {
+            background-color: var(--bg-body); margin: 0; padding: 0; width: 100%; min-height: 100vh;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif; color: var(--text-body); overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease; display: flex; flex-direction: column;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        .btn-press:active { transform: scale(0.96); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+        @keyframes glow { 0% { box-shadow: 0 0 5px #FFD700; } 50% { box-shadow: 0 0 20px #FFD700, 0 0 10px #FFA500; } 100% { box-shadow: 0 0 5px #FFD700; } }
+        @keyframes holo-shine { 0% { transform: rotate(30deg) translateY(100%); } 100% { transform: rotate(30deg) translateY(-100%); } }
+
+        #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
+
+        #login-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
+        .login-card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); border: var(--glass-border); box-shadow: 0 20px 40px rgba(0,0,0,0.2); padding: 40px 30px; width: 100%; max-width: 380px; border-radius: 24px; text-align: center; display: flex; flex-direction: column; }
+        .login-logo { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+        .login-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 32px; }
+        .login-field { margin-bottom: 20px; text-align: left; }
+        .login-label { display: block; font-size: 0.9rem; font-weight: 700; color: var(--text-body); margin-bottom: 8px; }
+        .login-input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem; background: var(--bg-input); outline: none; transition: 0.2s; color: var(--text-main); }
+        .login-input:focus { border-color: var(--primary); background: var(--bg-card); }
+        .login-btn { width: 100%; padding: 16px; margin-top: 10px; background: var(--primary-gradient); color: white; border: none; border-radius: 16px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .login-btn:hover { transform: scale(1.02); }
+        .error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 15px; min-height: 20px; font-weight: 600; opacity: 0; transition: opacity 0.2s; }
+
+        .app-header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; z-index: 50; }
+        .hamburger-btn { background: none; border: none; cursor: pointer; padding: 8px; color: var(--text-main); border-radius: var(--radius); transition: 0.2s; display: flex; }
+        .hamburger-btn:hover { background: var(--bg-input); color: var(--primary); }
+        .header-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-left: 16px; letter-spacing: 0.05em; }
+
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 90; display: none; backdrop-filter: blur(2px); }
+        .sidebar-overlay.active { display: block; }
+        .sidebar { position: fixed; top: 0; left: calc(var(--sidebar-width) * -1); width: var(--sidebar-width); height: 100%; background: var(--bg-card); z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2); }
+        .sidebar.active { transform: translateX(var(--sidebar-width)); }
+        .sidebar-header { height: var(--header-height); display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); font-weight: 800; color: var(--primary); font-size: 1.2rem; }
+        .sidebar-menu { flex: 1; padding: 16px; list-style: none; margin: 0; }
+        .menu-item { display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: var(--radius); cursor: pointer; color: var(--text-body); font-weight: 600; transition: all 0.2s; }
+        .menu-item:hover { background: var(--bg-input); color: var(--primary); }
+        .menu-item.active { background: #FFEDD5; color: var(--text-main); border-left: 4px solid var(--primary); }
+        [data-theme="dark"] .menu-item.active { background: rgba(251, 146, 60, 0.15); color: #FB923C; }
+        .menu-icon { margin-right: 12px; font-size: 1.1rem; width: 24px; text-align: center; }
+        .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+
+        .main-content { margin-top: var(--header-height); padding: 24px; width: 100%; max-width: 1000px; display: grid; grid-template-columns: 1fr 400px; gap: 24px; margin-left: auto; margin-right: auto; align-self: center; align-items: start; flex: 1; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; display: flex; flex-direction: column; }
+
+        .visualization-card { align-items: center; min-height: 600px; }
+        .wheel-wrapper { position: relative; width: 380px; height: 380px; margin: 20px 0 30px 0; transition: transform 0.3s; }
+        .wheel-border { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #FFF; box-shadow: 0 0 0 1px var(--border), inset 0 2px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: white; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 100%; border-radius: 50%; }
+        .pointer-icon { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); width: 32px; height: 48px; z-index: 20; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1)); }
+        .pointer-icon polygon { fill: var(--text-main); }
+        .spin-btn { padding: 12px 40px; font-size: 1.1rem; font-weight: 700; background: var(--primary-gradient); color: white; border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3); transition: all 0.2s; width: 200px; letter-spacing: 0.05em; }
+        .spin-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .spin-btn:active { transform: translateY(1px); }
+        .spin-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
+
+        #scratch-view { display: none; flex-direction: column; width: 100%; min-height: 600px; }
+        #scratch-lobby { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
+        .lobby-grid-clean { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; width: 100%; max-width: 900px; }
+        .ticket-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.05); }
+        .ticket-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+        .ticket-top { height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; background: #eee; }
+        .ticket-top::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background-image: radial-gradient(circle, transparent 50%, white 50%); background-size: 16px 16px; background-position: center bottom; transform: rotate(180deg); }
+        .ticket-icon { font-size: 3.5rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1)); z-index: 1; }
+        .ticket-type-badge { position: absolute; top: 12px; left: 12px; width: 32px; height: 32px; background: rgba(255,255,255,0.95); color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 2; }
+        .ticket-price-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.25); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; backdrop-filter: blur(4px); z-index: 2; }
+        .ticket-bottom { padding: 16px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: white; text-align: center; }
+        [data-theme="dark"] .ticket-bottom { background: #1E293B; }
+        .ticket-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+        .ticket-btn { font-size: 0.85rem; font-weight: 700; color: white; background: var(--primary); padding: 6px 16px; border-radius: 20px; margin-top: auto; opacity: 0.8; }
+        .ticket-card:hover .ticket-btn { opacity: 1; }
+        .theme-silver .ticket-top { background: linear-gradient(135deg, #CBD5E1 0%, #94A3B8 100%); }
+        .theme-pink .ticket-top { background: linear-gradient(135deg, #F9A8D4 0%, #EC4899 100%); }
+        .theme-gold .ticket-top { background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); }
+        .theme-blue .ticket-top { background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%); }
+        .theme-combo .ticket-top { background: linear-gradient(135deg, #818CF8 0%, #6366F1 100%); }
+        
+        #scratch-game-area { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .back-btn-row { width: 100%; max-width: 400px; display: flex; justify-content: flex-start; margin-bottom: 15px; }
+        .back-btn { background: transparent; border: 1px solid var(--border); padding: 8px 16px; border-radius: 50px; color: var(--text-body); font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 5px; }
+        .back-btn:hover { background: var(--bg-input); color: var(--primary); transform: translateX(-2px); }
+        .scratch-wrapper { background: var(--scratch-red); padding: 20px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 6px solid #FFD700; width: 100%; max-width: 400px; position: relative; }
+        .scratch-header { text-align: center; color: white; font-weight: 900; margin-bottom: 20px; font-size: 1.8rem; letter-spacing: 2px; text-shadow: 2px 2px 0px #000; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 5px; }
+        .scratch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; background: #FFF; padding: 12px; border-radius: 16px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        .scratch-cell { position: relative; width: 100%; aspect-ratio: 1; background: #E2E8F0; border-radius: 8px; overflow: hidden; border: 2px dashed #CBD5E1; cursor: crosshair; user-select: none; transition: transform 0.1s; }
+        .scratch-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: #333; text-align: center; padding: 4px; z-index: 1; word-break: break-word; line-height: 1.2; background: radial-gradient(circle, #fff, #f0f0f0); opacity: 0; transition: opacity 0.2s; }
+        .scratch-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 10; transition: opacity 0.5s ease; }
+        .scratch-canvas.faded { opacity: 0; pointer-events: none; }
+        .scratch-cell.winner-glow { animation: glow 1.5s infinite alternate; border: 2px solid #FFD700; }
+        .scratch-cell.winner-glow .scratch-content { color: #D97706; transform: scale(1.1); font-size: 1.1rem; }
+        .scratch-msg { text-align: center; color: white; margin-top: 15px; font-weight: 800; min-height: 24px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); background: var(--primary); padding: 5px 15px; border-radius: 50px; display: inline-block; margin-left: 50%; transform: translateX(-50%); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+        #combo-view { display: none; flex-direction: column; justify-content: center; }
+        .slot-machine-wrapper { background: var(--slot-bg); border: 8px solid var(--slot-border); border-radius: 30px; padding: 20px; box-shadow: 0 10px 0px rgba(0,0,0,0.2), 0 20px 20px rgba(0,0,0,0.1); position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; box-sizing: border-box; }
+        .slot-lights { display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 10px; }
+        .bulb { width: 12px; height: 12px; background: #FFD700; border-radius: 50%; box-shadow: 0 0 5px #FFD700; animation: blink 1s infinite alternate; }
+        .bulb:nth-child(even) { animation-delay: 0.5s; background: #FFF; box-shadow: 0 0 5px #FFF; }
+        @keyframes blink { from { opacity: 0.4; } to { opacity: 1; } }
+        .slot-window { background: #FFFFFF; border-radius: 16px; border: 4px solid var(--slot-inner-border); display: flex; justify-content: space-around; padding: 0; overflow: hidden; box-sizing: border-box; height: 200px; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+        .win-line { position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: rgba(239, 68, 68, 0.4); z-index: 10; pointer-events: none; transform: translateY(-50%); display: flex; justify-content: space-between; align-items: center; }
+        .win-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+        .win-triangle-left { border-left: 15px solid #EF4444; margin-right: -15px; }
+        .win-triangle-right { border-right: 15px solid #EF4444; margin-left: -15px; }
+        .reel-col { width: 48%; position: relative; height: 100%; overflow: hidden; }
+        .reel-strip { width: 100%; position: absolute; top: 0; left: 0; }
+        .reel-item { height: var(--item-height); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; box-sizing: border-box; text-align: center; padding: 0 5px; border-radius: 4px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .slot-lever { position: absolute; right: -40px; top: 50px; width: 20px; height: 100px; background: #CBD5E1; border-radius: 0 10px 10px 0; box-shadow: inset 2px 2px 5px rgba(255,255,255,0.5); border: 2px solid #94A3B8; border-left: none; }
+        .slot-lever::before { content: ''; position: absolute; top: -40px; left: 5px; width: 10px; height: 60px; background: #CBD5E1; border: 2px solid #94A3B8; z-index: -1; }
+        .slot-lever::after { content: ''; position: absolute; top: -70px; left: -5px; width: 30px; height: 30px; background: var(--primary); border-radius: 50%; border: 2px solid #C2410C; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); }
+        .slot-lever.pulled { animation: pullLever 0.5s ease-in-out; }
+        @keyframes pullLever { 0% { transform: scaleY(1); } 50% { transform: scaleY(0.5) translateY(50px); } 100% { transform: scaleY(1); } }
+
+        .history-container { width: 100%; margin-top: auto; border-top: 1px solid var(--border); padding-top: 16px; }
+        .history-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; letter-spacing: 0.05em; }
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--bg-input); font-size: 0.9rem; color: var(--text-body); }
+        .history-item.latest { color: var(--text-main); font-weight: 700; background: #FFEDD5; padding: 8px; border-radius: 6px; border-bottom: none; border-left: 3px solid var(--primary); }
+        .new-badge { font-size: 0.7rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+        .controls-card h3 { font-size: 1.1rem; color: var(--text-main); margin: 0 0 16px 0; font-weight: 800; padding-bottom: 12px; border-bottom: 2px solid var(--bg-input); }
+        .budget-filter { display: flex; gap: 8px; margin-bottom: 16px; background: var(--bg-input); padding: 4px; border-radius: var(--radius); }
+        .filter-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-body); background: transparent; transition: 0.2s; white-space: nowrap; }
+        .filter-btn:hover { background: rgba(0,0,0,0.05); }
+        .filter-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .input-group { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; width: 100%; flex-wrap: wrap; }
+        input[type="text"] { flex: 1; min-width: 120px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; background: var(--bg-input); outline: none; transition: border-color 0.2s; color: var(--text-main); }
+        input[type="text"]:focus { border-color: var(--primary); background: var(--bg-card); }
+        .price-select-main { width: 60px; flex-shrink: 0; padding: 10px 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text-main); font-weight: 600; outline: none; cursor: pointer; text-align: center; }
+        .price-select-main:focus { border-color: var(--primary); background: var(--bg-card); }
+        input[type="color"] { width: 42px; height: 42px; border: 1px solid var(--border); background: var(--bg-input); border-radius: var(--radius); padding: 4px; cursor: pointer; flex-shrink: 0; }
+        .add-btn { width: 42px; height: 42px; padding: 0; background-color: var(--bg-card); color: var(--primary); border: 1px solid var(--border); border-radius: var(--radius); font-size: 1.5rem; font-weight: 400; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
+        .add-btn:hover { border-color: var(--primary); background-color: var(--bg-input); }
+        .recommendation-area { margin-bottom: 16px; }
+        .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-body); transition: 0.2s; user-select: none; }
+        .accordion-header:hover { border-color: var(--text-muted); }
+        .accordion-header.active { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom-color: transparent; }
+        .arrow-icon { font-size: 0.8rem; color: var(--text-muted); transition: transform 0.3s; }
+        .accordion-header.active .arrow-icon { transform: rotate(180deg); }
+        .accordion-content { display: none; background: var(--bg-card); border: 1px solid var(--border); border-top: none; padding: 12px; border-radius: 0 0 var(--radius) var(--radius); animation: slideDown 0.3s ease-out; }
+        .accordion-content.open { display: block; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip { padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; opacity: 0.9; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); display: inline-block; }
+        .chip:hover { opacity: 1; transform: translateY(-1px); }
+        .list-container { flex: 1; overflow-y: auto; max-height: 350px; min-height: 200px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); }
+        .item-list { list-style: none; padding: 0; margin: 0; }
+        .item-list li { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--bg-card); font-size: 0.95rem; color: var(--text-body); }
+        .item-list li:last-child { border-bottom: none; }
+        .item-left { display: flex; align-items: center; flex: 1; overflow: hidden; margin-right: 8px; }
+        .mini-color-picker { width: 20px; height: 20px; border: none; background: none; cursor: pointer; margin-right: 10px; padding: 0; vertical-align: middle; flex-shrink: 0; }
+        .mini-color-picker::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; }
+        .item-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .price-badge { display: inline-block; width: 36px; text-align: center; padding: 2px 0; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: white; cursor: pointer; user-select: none; transition: 0.2s; }
+        .price-badge:hover { transform: scale(1.1); filter: brightness(1.1); }
+        .price-1 { background-color: var(--price-1); } .price-2 { background-color: var(--price-2); } .price-3 { background-color: var(--price-3); }
+        .delete-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.1rem; font-weight: bold; padding: 4px 8px; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .delete-btn:hover { color: var(--danger); background-color: var(--bg-input); }
+        
+        .toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
+        .toast { background: rgba(30, 41, 59, 0.9); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.95rem; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); backdrop-filter: blur(8px); margin-bottom: 10px; opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+        .settings-modal { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); border: var(--glass-border); box-shadow: var(--glass-shadow); width: 100%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .param-table-container { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+        .param-table { width: 100%; border-collapse: collapse; }
+        .param-table th, .param-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+        .param-table th { position: sticky; top: 0; background: var(--bg-input); z-index: 1; font-size: 0.9rem; color: var(--text-muted); }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 5px; }
+        .settings-header h2 { margin: 0; font-size: 1.3rem; color: var(--text-main); font-weight: 800; }
+        .close-icon { cursor: pointer; font-size: 1.5rem; color: var(--text-muted); line-height: 1; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .setting-label { font-weight: 600; color: var(--text-main); font-size: 1rem; }
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--text-muted); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .setting-btn { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); color: var(--text-main); font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .setting-btn:hover { background: var(--bg-input); border-color: var(--text-muted); }
+        .setting-btn.danger { color: var(--danger); border-color: var(--danger); background: rgba(220, 38, 38, 0.05); }
+        .setting-btn.danger:hover { background: rgba(220, 38, 38, 0.1); }
+        .setting-btn.reset { color: var(--text-muted); border-color: var(--border); background: transparent; margin-top: 10px; font-size: 0.9rem; }
+        .setting-btn.reset:hover { background: var(--bg-input); color: var(--text-main); border-color: var(--text-muted); }
+        .setting-btn.primary { background: var(--primary); color: white; border: none; }
+        .setting-btn.primary:hover { background: var(--primary-hover); }
+        .setting-btn.logout { margin-top: 5px; border-color: #9CA3AF; color: var(--text-main); background: rgba(255, 255, 255, 0.5); }
+        .setting-btn.logout:hover { background: var(--bg-input); border-color: var(--text-main); }
+        .result-text { font-size: 2.5rem; color: var(--text-main); font-weight: 800; margin: 20px 0; }
+        .modal-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem; }
+        .modal-btn:hover { background-color: var(--primary-hover); }
+        .maps-btn, .share-btn { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .maps-btn { background: var(--google-green); color: white; }
+        .maps-btn:hover { filter: brightness(0.9); }
+        .share-btn { background: var(--share-purple); color: white; }
+        .share-btn:hover { filter: brightness(0.9); }
+        .app-footer { width: 100%; padding: 15px 20px; text-align: center; background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem; margin-top: 30px; }
+
+        /* 【關鍵修正】分享卡片模板：徹底隱藏 */
+        #share-card-template { 
+            position: fixed; left: -9999px; top: 0; 
+            width: 540px; height: 960px; /* 固定尺寸 */
+            background: linear-gradient(135deg, #0F172A 0%, #312E81 50%, #F97316 100%); 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between; 
+            padding: 60px 40px; box-sizing: border-box; color: white; 
+            font-family: 'Noto Sans TC', sans-serif; 
+            z-index: -9999; opacity: 0; visibility: hidden; /* 確保不可見但存在 */
+        }
+        .share-header { text-align: center; opacity: 0.8; letter-spacing: 2px; font-weight: 500; font-size: 1.2rem; margin-top: 20px; }
+        .share-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; text-align: center; }
+        .share-result-text { font-size: 4rem; font-weight: 900; line-height: 1.3; text-shadow: 0 4px 10px rgba(0,0,0,0.5); margin-bottom: 20px; word-break: break-word; }
+        .share-decoration { width: 80px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 20px 0; }
+        .share-footer { text-align: center; margin-bottom: 20px; }
+        .share-brand { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; color: #FFEDD5; }
+        .share-slogan { font-size: 1rem; opacity: 0.7; margin-top: 5px; }
+
+        /* 【關鍵修正】分享圖片預覽：限制最大寬度，防止撐爆 */
+        #shareImagePreview { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; margin: 0 auto; }
+
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; gap: 30px; padding: 15px; width: 100%; margin-top: 80px; }
+            .card { width: 100%; }
+            .wheel-wrapper { width: 300px; height: 300px; margin: 10px auto; }
+            .slot-machine-wrapper { width: 100%; max-width: 100%; padding: 10px; border-width: 6px; }
+            .slot-lever { display: none !important; }
+            .lobby-grid-clean { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .ticket-card { min-height: 200px; }
+            .ticket-top { height: 100px; }
+            .ticket-icon { font-size: 2.5rem; }
+            .result-text { font-size: 2rem; }
+            .settings-modal { width: 95%; padding: 20px; }
+        }
+        
+        @media (max-width: 400px) {
+             .lobby-grid-clean { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast-container"><div id="toast" class="toast"></div></div>
+
+    <div id="login-page">
+        <div class="login-card">
+            <span class="login-logo">🔒</span>
+            <div class="login-title">餐點決策支援系統</div>
+            <div class="login-field"><label class="login-label">使用者名稱</label><input type="text" id="username" class="login-input" placeholder="admin / guest"></div>
+            <div class="login-field"><label class="login-label">密碼</label><input type="password" id="password" class="login-input" placeholder="••••"></div>
+            <div id="loginError" class="error-msg">帳號或密碼錯誤</div>
+            <button class="login-btn" onclick="handleLogin()">登入系統</button>
+        </div>
+    </div>
+
+    <div id="app-container" style="display: none;">
+        <header class="app-header">
+            <button class="hamburger-btn" onclick="openSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <div class="header-title" id="headerTitle">正餐選擇</div>
+        </header>
+
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">Food App</div>
+            <ul class="sidebar-menu">
+                <li class="menu-item active" id="menuLunch" onclick="switchMode('lunch')"><span class="menu-icon">🍱</span> 吃正餐</li>
+                <li class="menu-item" id="menuDrink" onclick="switchMode('drink')"><span class="menu-icon">🧋</span> 喝飲料</li>
+                <li class="menu-item" id="menuCombo" onclick="switchMode('combo')"><span class="menu-icon">🎰</span> 套餐拉霸</li>
+                <li class="menu-item" id="menuScratch" onclick="switchMode('scratch')"><span class="menu-icon">🎫</span> 彩券大廳</li>
+                <li class="menu-item" onclick="openParameters()"><span class="menu-icon">📊</span> 參數設定</li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="menu-item" onclick="openSettings()"><span class="menu-icon">⚙️</span> 設定</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div id="wheel-view" class="card visualization-card">
+                <div class="wheel-wrapper">
+                    <svg class="pointer-icon" viewBox="0 0 50 60" fill="none"><path d="M25 60 L45 15 Q50 5 40 0 L10 0 Q0 5 5 15 Z" fill="#FF0000" stroke="white" stroke-width="2"/></svg>
+                    <div class="wheel-border"><canvas id="wheelCanvas" width="500" height="500"></canvas></div>
+                </div>
+                <button id="spinBtn" class="spin-btn" onclick="startSpin()">開始轉動</button>
+                <div class="history-container">
+                    <div class="history-title">歷史紀錄 (Recent)</div>
+                    <ul id="historyList" class="history-list"></ul>
+                </div>
+            </div>
+
+            <div id="combo-view" class="card visualization-card">
+                <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px; letter-spacing:1px;">LUCKY COMBO</h3>
+                <div class="slot-machine-wrapper">
+                    <div class="slot-lights">
+                        <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+                        <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+                    </div>
+                    <div class="slot-window">
+                        <div class="win-line"><div class="win-triangle win-triangle-right"></div><div class="win-triangle win-triangle-left"></div></div>
+                        <div class="reel-col"><div class="reel-strip" id="reelLunch"></div></div>
+                        <div class="reel-col"><div class="reel-strip" id="reelDrink"></div></div>
+                    </div>
+                    <div class="slot-lever" id="slotLever"></div>
+                </div>
+                <button id="comboSpinBtn" class="spin-btn" onclick="startComboSpin()">拉霸 (SPIN)</button>
+            </div>
+
+            <div id="scratch-view">
+                <div id="scratch-lobby">
+                    <div class="lobby-grid-clean" id="lobbyGrid"></div>
+                </div>
+
+                <div id="scratch-game-area">
+                    <div class="back-btn-row">
+                        <button class="back-btn" onclick="backToLobby()">⬅️ 回大廳</button>
+                    </div>
+                    <div class="scratch-wrapper" id="gameCardWrapper">
+                        <div class="scratch-header" id="gameTitle">LUCKY SCRATCH</div>
+                        <div class="scratch-msg" id="scratchMsg">刮出 3 個相同圖案即中獎！</div>
+                        <div class="scratch-grid" id="scratchGrid"></div>
+                    </div>
+                    <button id="resetScratchBtn" class="spin-btn" onclick="initScratchGame()" style="margin-top:30px;">🔄 再刮一張</button>
+                </div>
+            </div>
+
+            <div id="controls-panel" class="card controls-card">
+                <h3>選項設定</h3>
+                
+                <div class="budget-filter">
+                    <button class="filter-btn active" onclick="applyBudgetFilter(0, this)">全部</button>
+                    <button class="filter-btn" onclick="applyBudgetFilter(1, this)">$ 經濟</button>
+                    <button class="filter-btn" onclick="applyBudgetFilter(2, this)">$$ 舒適</button>
+                    <button class="filter-btn" onclick="applyBudgetFilter(3, this)">$$$ 豪華</button>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="newItemInput" placeholder="輸入名稱..." onkeypress="handleKeyPress(event)">
+                    <select id="newPriceInput" class="price-select-main">
+                        <option value="1">$</option>
+                        <option value="2" selected>$$</option>
+                        <option value="3">$$$</option>
+                    </select>
+                    <input type="color" id="newColorInput" value="#F97316">
+                    <button class="add-btn" onclick="addItem()">+</button>
+                </div>
+                
+                <div class="recommendation-area">
+                    <div id="accordionHeader" class="accordion-header" onclick="toggleAccordion()">
+                        <span id="recommendLabel">快速新增 (點擊展開)</span>
+                        <span class="arrow-icon">▼</span>
+                    </div>
+                    <div id="accordionContent" class="accordion-content">
+                        <div id="recommendationChips" class="chips-container"></div>
+                    </div>
+                </div>
+
+                <div class="list-container">
+                    <ul id="itemList" class="item-list"></ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            © 2026 Food Pro System | Create BY LJOU
+        </footer>
+    </div>
+    
+    <div id="share-card-template">
+        <div class="share-header" id="shareDate"></div>
+        <div class="share-content"><div class="share-decoration"></div><div class="share-result-text" id="shareResult"></div><div class="share-decoration"></div></div>
+        <div class="share-footer"><div class="share-brand">彩券大廳</div><div class="share-slogan">命運的安排</div></div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModalOverlay">
+        <div class="settings-modal">
+            <div class="settings-header"><h2>系統設定</h2><span class="close-icon" onclick="closeSettings()">×</span></div>
+            <div class="setting-row"><span class="setting-label">🔊 啟用音效</span><label class="switch"><input type="checkbox" id="soundToggle" checked onchange="toggleSound()"><span class="slider"></span></label></div>
+            <div class="setting-row"><span class="setting-label">🌙 夜間模式</span><label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"><span class="slider"></span></label></div>
+            <button class="setting-btn" onclick="exportData()">📥 匯出資料 (JSON)</button>
+            <button class="setting-btn danger" onclick="clearHistory()">🗑️ 清除所有歷史紀錄</button>
+            <button class="setting-btn reset" onclick="resetToDefaults()">🔄 恢復設定</button>
+            <button class="setting-btn logout" onclick="handleLogout()">🚪 登出系統</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="parameterModalOverlay">
+        <div class="settings-modal" style="max-width:600px;">
+            <div class="settings-header"><h2 id="paramModalTitle">權重與價位配置</h2><span class="close-icon" onclick="closeParameters()">×</span></div>
+            <div class="param-table-container">
+                <table class="param-table"><thead><tr><th>選項名稱</th><th style="width:60px;">權重</th><th style="width:80px;">價位</th></tr></thead><tbody id="paramTableBody"></tbody></table>
+            </div>
+            <div class="param-modal-footer">
+                <button class="setting-btn" onclick="resetWeights()">重置預設值</button>
+                <button class="setting-btn primary" onclick="closeParameters()">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="shareModalOverlay">
+        <div class="settings-modal" style="width:auto; max-width:90%;">
+            <div class="settings-header"><h2>分享結果</h2><span class="close-icon" onclick="closeShareModal()">×</span></div>
+            <p style="text-align:center; color:var(--text-muted); margin:0 0 10px 0;">✨ 長按圖片即可儲存分享 ✨</p>
+            <img id="shareImagePreview">
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModalOverlay">
+        <div class="settings-modal result-card">
+            <div class="result-title">WINNER</div>
+            <div class="result-text" id="finalResult">結果</div>
+            <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                <button class="maps-btn" onclick="openGoogleMaps()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span id="mapsBtnText">前往</span>
+                </button>
+                <button class="share-btn" onclick="generateShareCard()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    產生分享圖
+                </button>
+                <button class="modal-btn" onclick="closeResultModal()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const USERS = [{ user: 'admin', pass: '1234' }, { user: 'guest', pass: '0000' }];
+        function initTheme() {
+            const t = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+            if(t==='dark') document.getElementById('themeToggle').checked=true;
+        }
+        (function checkSession() { initTheme(); if (sessionStorage.getItem('isLoggedIn') === 'true') showApp(); })();
+        function handleLogin() {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            if (USERS.some(usr => usr.user === u && usr.pass === p)) { sessionStorage.setItem('isLoggedIn', 'true'); showApp(); }
+            else { const c = document.querySelector('.login-card'); document.getElementById('loginError').style.opacity = '1'; c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+        }
+        function handleLogout() { if(confirm("確定要登出嗎？")) { sessionStorage.removeItem('isLoggedIn'); location.reload(); } }
+        function resetToDefaults() {
+            if(confirm("確定要恢復原廠設定嗎？\n這將會清除所有自訂選項與紀錄，無法復原。")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+        function showApp() {
+            document.getElementById('login-page').style.display = 'none'; 
+            /* 【修正】JS 切換時確保使用 Flexbox 佈局，讓 CSS 的 column 方向生效 */
+            document.getElementById('app-container').style.display = 'flex'; 
+            setTimeout(() => { randomizeColorInput(); updateList(); updateHistoryUI(); drawRouletteWheel(); }, 50);
+        }
+
+        let isSoundEnabled = true; let currentResultForMaps = '';
+        const tickSound = new Audio('tick.mp3'); const winSound = new Audio('win.mp3');
+        tickSound.volume = 0.4; winSound.volume = 0.6;
+        function playSound(s) { if (s && isSoundEnabled) { s.pause(); s.currentTime = 0; s.play().catch(e => { }); } }
+        function getContrastYIQ(hex){
+            hex = hex.replace("#", ""); if(hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+            var r = parseInt(hex.substr(0,2),16); var g = parseInt(hex.substr(2,2),16); var b = parseInt(hex.substr(4,2),16);
+            return (((r*299)+(g*587)+(b*114))/1000) >= 160 ? '#431407' : 'white';
+        }
+        function openGoogleMaps() { if(currentResultForMaps) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentResultForMaps+" 附近")}`, '_blank'); }
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+
+        function generateShareCard() {
+            const today = new Date(); document.getElementById('shareDate').textContent = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,'0')}.${today.getDate().toString().padStart(2,'0')} 的決定`;
+            document.getElementById('shareResult').innerHTML = document.getElementById('finalResult').innerText.replace(' + ', '<br>+<br>');
+            
+            // 暫時解除隱藏以便截圖
+            const template = document.querySelector("#share-card-template");
+            template.style.visibility = 'visible';
+            template.style.opacity = '1';
+
+            html2canvas(template, { 
+                scale: 2, 
+                backgroundColor: null, // 使用 CSS 背景
+                useCORS: true
+            }).then(c => {
+                document.getElementById('shareImagePreview').src = c.toDataURL("image/png");
+                document.getElementById('resultModalOverlay').classList.remove('active'); 
+                document.getElementById('shareModalOverlay').classList.add('active');
+                
+                // 截圖完畢後隱藏回去
+                template.style.visibility = 'hidden';
+                template.style.opacity = '0';
+            });
+        }
+        function closeShareModal() { document.getElementById('shareModalOverlay').classList.remove('active'); }
+
+        function openSidebar() { document.getElementById('sidebar').classList.add('active'); document.getElementById('sidebarOverlay').classList.add('active'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('active'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+        function openSettings() { closeSidebar(); document.getElementById('settingsModalOverlay').classList.add('active'); }
+        function closeSettings() { document.getElementById('settingsModalOverlay').classList.remove('active'); }
+        function toggleSound() { isSoundEnabled = document.getElementById('soundToggle').checked; }
+        function toggleTheme() {
+            const t = document.getElementById('themeToggle').checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); drawRouletteWheel();
+        }
+        function closeResultModal() { document.getElementById('resultModalOverlay').classList.remove('active'); }
+        function toggleAccordion() { const h = document.getElementById('accordionHeader'); const c = document.getElementById('accordionContent'); if(h&&c){ h.classList.toggle('active'); c.classList.toggle('open'); } }
+
+        // --- FULL Data ---
+        let currentMode = 'lunch'; let currentBudgetFilter = 0;
+        const appData = {
+            lunch: {
+                title: "正餐選擇",
+                database: [ 
+                    { text: '水餃', color: '#B0BEC5', weight: 1, priceLevel: 1 }, 
+                    { text: '滷肉飯', color: '#8D6E63', weight: 1, priceLevel: 1 }, 
+                    { text: '義大利麵', color: '#FFCC80', weight: 1, priceLevel: 2 }, 
+                    { text: '壽司', color: '#F48FB1', weight: 1, priceLevel: 2 }, 
+                    { text: '韓式料理', color: '#E57373', weight: 1, priceLevel: 2 }, 
+                    { text: '炸雞', color: '#FFB74D', weight: 1, priceLevel: 2 }, 
+                    { text: 'Subway', color: '#A5D6A7', weight: 1, priceLevel: 2 }, 
+                    { text: '麥當勞', color: '#E53935', weight: 1, priceLevel: 1 }, 
+                    { text: '火鍋', color: '#FFAB91', weight: 1, priceLevel: 3 }, 
+                    { text: '拉麵', color: '#FFD54F', weight: 1, priceLevel: 2 }, 
+                    { text: '咖哩飯', color: '#FBC02D', weight: 1, priceLevel: 2 }, 
+                    { text: '便當', color: '#81C784', weight: 1, priceLevel: 1 }, 
+                    { text: '便利商店', color: '#4FC3F7', weight: 1, priceLevel: 1 }, 
+                    { text: '披薩', color: '#FF8A65', weight: 1, priceLevel: 2 }, 
+                    { text: '自助餐', color: '#BA68C8', weight: 1, priceLevel: 2 }, 
+                    { text: '牛肉麵', color: '#795548', weight: 1, priceLevel: 2 }, 
+                    { text: '炒飯', color: '#FFF176', weight: 1, priceLevel: 1 }, 
+                    { text: '小籠包', color: '#EEEEEE', weight: 1, priceLevel: 2 }, 
+                    { text: '丹丹漢堡', color: '#FFCA28', weight: 1, priceLevel: 1 }, 
+                    { text: '健康餐盒', color: '#80CBC4', weight: 1, priceLevel: 2 }, 
+                    { text: '鐵板燒', color: '#546E7A', weight: 1, priceLevel: 3 }, 
+                    { text: '三明治', color: '#FFE082', weight: 1, priceLevel: 1 } 
+                ],
+                options: [ 
+                    { text: '咖哩飯', color: '#FBC02D', weight: 1, priceLevel: 2 }, 
+                    { text: '拉麵', color: '#FFD54F', weight: 1, priceLevel: 2 }, 
+                    { text: '火鍋', color: '#FFAB91', weight: 1, priceLevel: 3 }, 
+                    { text: '便利商店', color: '#4FC3F7', weight: 1, priceLevel: 1 }, 
+                    { text: '麥當勞', color: '#E53935', weight: 1, priceLevel: 1 }, 
+                    { text: '便當', color: '#81C784', weight: 1, priceLevel: 1 } 
+                ],
+                history: JSON.parse(localStorage.getItem('lunchSpinHistory')) || []
+            },
+            drink: {
+                title: "飲料選擇",
+                database: [ 
+                    { text: '五十嵐', color: '#FFEB3B', weight: 1, priceLevel: 2 }, 
+                    { text: '可不可', color: '#1A237E', weight: 1, priceLevel: 2 }, 
+                    { text: '星巴克', color: '#004D40', weight: 1, priceLevel: 3 }, 
+                    { text: '迷客夏', color: '#4CAF50', weight: 1, priceLevel: 2 }, 
+                    { text: '麻古茶坊', color: '#E53935', weight: 1, priceLevel: 2 }, 
+                    { text: '大苑子', color: '#66BB6A', weight: 1, priceLevel: 2 }, 
+                    { text: '珍煮丹', color: '#3E2723', weight: 1, priceLevel: 2 }, 
+                    { text: 'CoCo', color: '#FF9800', weight: 1, priceLevel: 1 }, 
+                    { text: '清心福全', color: '#8BC34A', weight: 1, priceLevel: 1 }, 
+                    { text: '五桐號', color: '#F5F5DC', weight: 1, priceLevel: 2 }, 
+                    { text: '龜記', color: '#D84315', weight: 1, priceLevel: 2 }, 
+                    { text: '萬波', color: '#FFF9C4', weight: 1, priceLevel: 2 }, 
+                    { text: '一沐日', color: '#81C784', weight: 1, priceLevel: 2 }, 
+                    { text: '再睡五分鐘', color: '#90A4AE', weight: 1, priceLevel: 2 }, 
+                    { text: '茶湯會', color: '#5D4037', weight: 1, priceLevel: 2 }, 
+                    { text: '春水堂', color: '#37474F', weight: 1, priceLevel: 3 }, 
+                    { text: '路易莎', color: '#FF7043', weight: 1, priceLevel: 2 }, 
+                    { text: '超商咖啡', color: '#0284C7', weight: 1, priceLevel: 1 } 
+                ],
+                options: [ 
+                    { text: '五十嵐', color: '#FFEB3B', weight: 1, priceLevel: 2 }, 
+                    { text: '可不可', color: '#1A237E', weight: 1, priceLevel: 2 }, 
+                    { text: '星巴克', color: '#004D40', weight: 1, priceLevel: 3 }, 
+                    { text: '迷客夏', color: '#4CAF50', weight: 1, priceLevel: 2 }, 
+                    { text: '麻古茶坊', color: '#E53935', weight: 1, priceLevel: 2 } 
+                ],
+                history: JSON.parse(localStorage.getItem('drinkSpinHistory')) || []
+            },
+            combo: { title: "套餐拉霸", options: [] }
+        };
+
+        const scratchTypes = [
+            { id: 'lunch_1', name: '銅板飽飽餐', type: 'lunch', priceFilter: 1, theme: 'silver', icon: '🍱' },
+            { id: 'lunch_2', name: '舒適小確幸', type: 'lunch', priceFilter: 2, theme: 'pink', icon: '🍛' },
+            { id: 'lunch_3', name: '摘星豪華宴', type: 'lunch', priceFilter: 3, theme: 'gold', icon: '💎' },
+            { id: 'lunch_all', name: '午餐大滿貫', type: 'lunch', priceFilter: null, theme: 'blue', icon: '🍽️' },
+            { id: 'drink_1', name: '解渴銅板價', type: 'drink', priceFilter: 1, theme: 'silver', icon: '🧃' },
+            { id: 'drink_2', name: '手搖下午茶', type: 'drink', priceFilter: 2, theme: 'pink', icon: '🧋' },
+            { id: 'drink_3', name: '高級特調飲', type: 'drink', priceFilter: 3, theme: 'gold', icon: '☕' },
+            { id: 'drink_all', name: '飲料全制霸', type: 'drink', priceFilter: null, theme: 'blue', icon: '🍹' },
+            { id: 'combo', name: '命運大亂鬥', type: 'combo', priceFilter: null, theme: 'combo', icon: '🦉' }
+        ];
+        
+        let currentScratchConfig = null;
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if(mode==='lunch') document.getElementById('menuLunch').classList.add('active');
+            else if(mode==='drink') document.getElementById('menuDrink').classList.add('active');
+            else if(mode==='combo') document.getElementById('menuCombo').classList.add('active');
+            else if(mode==='scratch') document.getElementById('menuScratch').classList.add('active');
+            document.getElementById('headerTitle').textContent = appData[mode]?.title || '彩券大廳';
+            closeSidebar();
+            
+            const w = document.getElementById('wheel-view'), c = document.getElementById('combo-view'), s = document.getElementById('scratch-view'), p = document.getElementById('controls-panel');
+            currentBudgetFilter = 0;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.filter-btn').classList.add('active');
+
+            w.style.display='none'; c.style.display='none'; s.style.display='none'; p.style.display='none';
+
+            if(mode === 'combo') { 
+                c.style.display = 'flex'; 
+                // Removed slot auto-fill call here to rely on manual initSlotMachine
+                initSlotMachine(); // Just call to render empty state if needed
+            }
+            else if(mode === 'scratch') { 
+                s.style.display = 'flex'; 
+                renderScratchLobby();
+                document.getElementById('scratch-lobby').style.display = 'flex';
+                document.getElementById('scratch-game-area').style.display = 'none';
+            }
+            else { w.style.display = 'flex'; p.style.display = 'flex'; randomizeColorInput(); updateList(); updateHistoryUI(); drawRouletteWheel(); }
+        }
+
+        function applyBudgetFilter(l, btn) {
+            currentBudgetFilter = l;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active'); updateList(); drawRouletteWheel();
+        }
+        function getFilteredOptions() {
+            const all = appData[currentMode].options;
+            return currentBudgetFilter === 0 ? all : all.filter(o => o.priceLevel === currentBudgetFilter);
+        }
+
+        function handleKeyPress(e) { if(e.key==='Enter') addItem(); }
+        function randomizeColorInput() { document.getElementById('newColorInput').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'); }
+        
+        function addItem() {
+            const txt = document.getElementById('newItemInput').value.trim();
+            const col = document.getElementById('newColorInput').value;
+            const price = parseInt(document.getElementById('newPriceInput').value);
+            if(!txt || appData[currentMode].options.some(o=>o.text===txt)) return;
+            if (currentBudgetFilter !== 0 && currentBudgetFilter !== price) {
+                currentBudgetFilter = 0; 
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn').classList.add('active');
+                showToast("已切換至全部顯示，以包含新項目");
+            }
+            appData[currentMode].options.push({ text:txt, color:col, weight:1, priceLevel:price });
+            document.getElementById('newItemInput').value = ''; randomizeColorInput();
+            updateList(); drawRouletteWheel();
+        }
+        
+        function addPreset(obj) {
+            if(appData[currentMode].options.some(o=>o.text===obj.text)) return;
+            if (currentBudgetFilter !== 0 && currentBudgetFilter !== obj.priceLevel) {
+                currentBudgetFilter = 0;
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn').classList.add('active');
+                showToast("已切換至全部顯示，以包含新項目");
+            }
+            appData[currentMode].options.push({...obj, weight:1});
+            updateList(); drawRouletteWheel();
+        }
+        
+        function deleteItem(idx) {
+            const filtered = getFilteredOptions();
+            const item = filtered[idx];
+            const realIdx = appData[currentMode].options.indexOf(item);
+            if(realIdx > -1) appData[currentMode].options.splice(realIdx, 1);
+            updateList(); drawRouletteWheel();
+        }
+        function updateItemColor(idx, val) {
+            const filtered = getFilteredOptions(); filtered[idx].color = val; drawRouletteWheel();
+        }
+        function cyclePrice(idx) {
+            const filtered = getFilteredOptions();
+            let current = filtered[idx].priceLevel || 1;
+            current++; if (current > 3) current = 1;
+            filtered[idx].priceLevel = current;
+            updateList(); drawRouletteWheel();
+        }
+
+        function updateList() {
+            const opts = getFilteredOptions();
+            const db = appData[currentMode].database;
+            const listEl = document.getElementById('itemList'); listEl.innerHTML = '';
+            opts.forEach((item, i) => {
+                const li = document.createElement('li');
+                let priceText = '$'; let priceClass = 'price-1';
+                if(item.priceLevel === 2) { priceText = '$$'; priceClass = 'price-2'; }
+                if(item.priceLevel === 3) { priceText = '$$$'; priceClass = 'price-3'; }
+                li.innerHTML = `
+                    <div class="item-left">
+                        <input type="color" class="mini-color-picker" value="${item.color}" oninput="updateItemColor(${i}, this.value)">
+                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px;" title="${item.text}">${item.text}</span>
+                    </div>
+                    <div class="item-right">
+                        <span class="price-badge ${priceClass}" onclick="cyclePrice(${i})" title="點擊切換價位">${priceText}</span>
+                        <button class="delete-btn" onclick="deleteItem(${i})">✕</button>
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+            const chipEl = document.getElementById('recommendationChips'); chipEl.innerHTML = '';
+            const allCurrentTexts = appData[currentMode].options.map(o=>o.text);
+            db.forEach(item => {
+                if(!allCurrentTexts.includes(item.text)) {
+                    const chip = document.createElement('div');
+                    chip.className = 'chip'; chip.textContent = item.text; chip.style.backgroundColor = item.color; chip.style.color = getContrastYIQ(item.color);
+                    chip.onclick = () => addPreset(item); chipEl.appendChild(chip);
+                }
+            });
+        }
+
+        function clearHistory() { if(confirm("清除紀錄？")) { appData.lunch.history=[]; appData.drink.history=[]; localStorage.removeItem('lunchSpinHistory'); localStorage.removeItem('drinkSpinHistory'); updateHistoryUI(); } }
+        function exportData() { const s = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const n = document.createElement('a'); n.setAttribute("href", s); n.setAttribute("download", "backup.json"); document.body.appendChild(n); n.click(); n.remove(); }
+        function addToHistory(txt) { const h = appData[currentMode].history; h.unshift(txt); if(h.length>5) h.pop(); localStorage.setItem(currentMode==='lunch'?'lunchSpinHistory':'drinkSpinHistory', JSON.stringify(h)); updateHistoryUI(); }
+        function updateHistoryUI() { const h = appData[currentMode].history; const el = document.getElementById('historyList'); el.innerHTML=''; if(h.length===0){ el.innerHTML='<li class="history-item" style="justify-content:center;color:var(--text-muted)">-- 尚無紀錄 --</li>'; return; } h.forEach((t,i) => { const li=document.createElement('li'); li.className=i===0?'history-item latest':'history-item'; li.innerHTML=i===0?`<span>${t}</span><span class="new-badge">最新</span>`:`<span>${t}</span><span style="color:var(--text-muted);font-size:0.8em">#${h.length-i}</span>`; el.appendChild(li); }); }
+
+        function openParameters() {
+            if(currentMode==='combo' || currentMode==='scratch'){ alert('請切換至正餐或飲料模式以設定參數'); return; }
+            closeSidebar(); document.getElementById('parameterModalOverlay').classList.add('active');
+            document.getElementById('paramModalTitle').textContent = `權重與價位 - ${appData[currentMode].title}`;
+            const tbody = document.getElementById('paramTableBody'); tbody.innerHTML = '';
+            appData[currentMode].options.forEach((item, i) => {
+                if(!item.weight) item.weight=1; if(!item.priceLevel) item.priceLevel=2;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><div style="display:flex;align-items:center;"><span style="width:10px;height:10px;border-radius:50%;background:${item.color};margin-right:8px;"></span>${item.text}</div></td><td><input type="number" class="weight-input" min="1" max="100" value="${item.weight}" onchange="updateOptionWeight(${i},this.value)"></td><td><select class="price-select-main" style="width:100%" onchange="updateOptionPrice(${i},this.value)"><option value="1" ${item.priceLevel==1?'selected':''}>$</option><option value="2" ${item.priceLevel==2?'selected':''}>$$</option><option value="3" ${item.priceLevel==3?'selected':''}>$$$</option></select></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        function closeParameters() { document.getElementById('parameterModalOverlay').classList.remove('active'); drawRouletteWheel(); updateList(); }
+        function updateOptionWeight(i, v) { const val=parseInt(v); if(val>0) appData[currentMode].options[i].weight = val; }
+        function updateOptionPrice(i, v) { appData[currentMode].options[i].priceLevel = parseInt(v); updateList(); drawRouletteWheel(); }
+        function resetWeights() { if(confirm("重置？")) { appData[currentMode].options.forEach(o=>o.weight=1); openParameters(); } }
+
+        const canvas = document.getElementById('wheelCanvas'); const ctx = canvas.getContext('2d');
+        let startAngle = 0; let spinTimeout = null; let spinAngleStart = 10; let spinTime = 0; let spinTimeTotal = 0;
+
+        function drawRouletteWheel() {
+            const opts = getFilteredOptions();
+            ctx.clearRect(0, 0, 500, 500);
+            const outsideRadius = 240; const insideRadius = 50; const centerX = 250; const centerY = 250;
+            if (opts.length === 0) { ctx.fillStyle = "#A8A29E"; ctx.font = "600 24px 'Inter'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("無符合選項", centerX, centerY); return; }
+            const totalWeight = opts.reduce((acc, item) => acc + (item.weight||1), 0);
+            let currentAngle = startAngle;
+            for(let i=0; i<opts.length; i++) {
+                const weight = opts[i].weight || 1; const arc = (weight / totalWeight) * 2 * Math.PI;
+                ctx.fillStyle = opts[i].color; ctx.beginPath(); ctx.arc(centerX, centerY, outsideRadius, currentAngle, currentAngle + arc, false); ctx.arc(centerX, centerY, insideRadius, currentAngle + arc, currentAngle, true); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "white"; ctx.stroke();
+                ctx.save(); ctx.translate(centerX, centerY); ctx.rotate(currentAngle + arc / 2); ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = getContrastYIQ(opts[i].color);
+                const text = opts[i].text; const maxW = outsideRadius - insideRadius - 40; let fontSize = 24; ctx.font = `bold ${fontSize}px 'Inter', sans-serif`; if(ctx.measureText(text).width > maxW) { fontSize = 16; ctx.font = `bold ${fontSize}px 'Inter', sans-serif`; }
+                ctx.fillText(text, outsideRadius - 30, 0); ctx.restore(); currentAngle += arc;
+            }
+        }
+        function startSpin() { 
+            if(getFilteredOptions().length < 2) { alert("至少要 2 個選項！"); return; } 
+            document.getElementById('spinBtn').disabled = true; 
+            spinTime = 0; 
+            // 【修正】轉動時間改為 5秒 ~ 10秒
+            spinTimeTotal = (Math.random() * 5000) + 5000; 
+            spinAngleStart = Math.random() * 10 + 20; 
+            rotateWheel(); 
+        }
+        function rotateWheel() { spinTime += 30; if(spinTime >= spinTimeTotal) { stopRotateWheel(); return; } const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal); startAngle += (spinAngle * Math.PI / 180); drawRouletteWheel(); if (spinTime % 100 < 20) playSound(tickSound); spinTimeout = requestAnimationFrame(rotateWheel); }
+        function stopRotateWheel() {
+            cancelAnimationFrame(spinTimeout); const opts = getFilteredOptions(); const totalWeight = opts.reduce((acc, item) => acc + (item.weight||1), 0);
+            const degrees = startAngle * 180 / Math.PI + 90; const rotation = (360 - degrees % 360); let currentAngle = 0; let index = 0;
+            for(let i=0; i<opts.length; i++) { const weight = opts[i].weight || 1; const degrees = (weight / totalWeight) * 360; if(rotation >= currentAngle && rotation < currentAngle + degrees) { index = i; break; } currentAngle += degrees; }
+            const result = opts[index]; document.getElementById('finalResult').innerHTML = result.text; document.getElementById('finalResult').style.color = 'var(--text-main)'; currentResultForMaps = result.text; document.getElementById('mapsBtnText').textContent = `搜尋 ${result.text}`; addToHistory(result.text); playSound(winSound); confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [result.color, '#ffffff', '#F97316'] });
+            setTimeout(() => { document.getElementById('resultModalOverlay').classList.add('active'); document.getElementById('spinBtn').disabled = false; }, 500);
+        }
+
+        // --- Slot Machine Logic (Fixed) ---
+        const REEL_ITEM_HEIGHT = 80;
+        function initSlotMachine() {
+            // NO AUTO-FILL: Just render whatever is there
+            renderReel('reelLunch', appData.lunch.options);
+            renderReel('reelDrink', appData.drink.options);
+            checkSpinButtonState();
+        }
+
+        function renderReel(containerId, options) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            container.style.transition = 'none';
+            container.style.transform = 'translateY(0)';
+            
+            // Empty State
+            if (!options || options.length === 0) {
+                container.innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #999; font-weight: bold;">(無選項)</div>';
+                return;
+            }
+            
+            let html = '';
+            // 【修復】Repeat Logic: 若選項太少，重複多次以填滿滾動區域，避免破圖
+            const minItems = 5; // 至少要有5個的高度
+            let renderList = [...options];
+            
+            // 如果選項很少 (例如只有1個)，強制複製到足夠數量
+            if (options.length < minItems) {
+                const multiplier = Math.ceil(minItems / options.length);
+                renderList = [];
+                for(let k=0; k<multiplier; k++) {
+                    renderList = renderList.concat(options);
+                }
+            }
+            
+            // Repeat for infinite scroll effect
+            const loopCount = 20; 
+            
+            for(let i=0; i<loopCount; i++) {
+                renderList.forEach(opt => {
+                    const textColor = getContrastYIQ(opt.color);
+                    html += `<div class="reel-item" style="background:${opt.color}; color:${textColor};">${opt.text}</div>`;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function checkSpinButtonState() {
+             const lunchCount = appData.lunch.options.length;
+             const drinkCount = appData.drink.options.length;
+             const btn = document.getElementById('comboSpinBtn');
+             // 至少要有一邊能轉 (這裡設定只要有內容就能轉，如果只有一個選項就轉出同一個)
+             // 嚴格模式: 需要各至少 2 個選項才能 "隨機"
+             if(lunchCount < 2 || drinkCount < 2) {
+                 btn.disabled = true;
+                 btn.innerText = '選項不足 (需各2個)';
+                 btn.style.opacity = '0.5';
+                 btn.style.cursor = 'not-allowed';
+             } else {
+                 btn.disabled = false;
+                 btn.innerText = '拉霸 (SPIN)';
+                 btn.style.opacity = '1';
+                 btn.style.cursor = 'pointer';
+             }
+        }
+
+        function startComboSpin() {
+            const lunchOpts = appData.lunch.options.filter(o => currentBudgetFilter===0 || o.priceLevel===currentBudgetFilter);
+            const drinkOpts = appData.drink.options.filter(o => currentBudgetFilter===0 || o.priceLevel===currentBudgetFilter);
+
+            if(lunchOpts.length < 2 || drinkOpts.length < 2) { alert('選項不足！(請檢查預算篩選)'); return; }
+            
+            renderReel('reelLunch', lunchOpts);
+            renderReel('reelDrink', drinkOpts);
+
+            document.getElementById('comboSpinBtn').disabled = true;
+            document.getElementById('slotLever').classList.add('pulled');
+            setTimeout(()=>document.getElementById('slotLever').classList.remove('pulled'), 500);
+            
+            const lunchCount = lunchOpts.length;
+            const drinkCount = drinkOpts.length;
+            
+            // 隨機選一個索引 (基於原始列表長度)
+            const lunchWinnerIdx = Math.floor(Math.random() * lunchCount);
+            const drinkWinnerIdx = Math.floor(Math.random() * drinkCount);
+            
+            // Spin Logic: Pass the raw count to calculate offset
+            // We need to account for the "rendered list" being much longer
+            // The spinReel function handles the visual scrolling based on item height
+            spinReel('reelLunch', lunchCount, lunchWinnerIdx, 5000); 
+            spinReel('reelDrink', drinkCount, drinkWinnerIdx, 10000);
+            
+            setTimeout(() => {
+                const lRes = lunchOpts[lunchWinnerIdx];
+                const dRes = drinkOpts[drinkWinnerIdx];
+                document.getElementById('finalResult').innerHTML = `${lRes.text} + ${dRes.text}`;
+                document.getElementById('finalResult').style.color = 'var(--text-main)';
+                currentResultForMaps = lRes.text; 
+                document.getElementById('mapsBtnText').textContent = `帶我去吃 ${lRes.text}`;
+                playSound(winSound);
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                setTimeout(() => {
+                    document.getElementById('resultModalOverlay').classList.add('active');
+                    document.getElementById('comboSpinBtn').disabled = false;
+                }, 500);
+            }, 10500);
+        }
+
+        function spinReel(elementId, optionCount, targetIndex, duration) {
+            const el = document.getElementById(elementId);
+            
+            // Calculate scroll target
+            // We rendered a very long list. We want to land on a specific item deep down.
+            // Let's land on the 10th loop's item to ensure enough scroll distance
+            const loopsToScroll = 10; 
+            
+            // Important: Handle cases where optionCount is small (e.g. 1) but we rendered repeats
+            // The renderReel function ensures we have enough visual items.
+            // But mathematically, we just need to know the height of ONE full set of options.
+            // However, since we might have artificially inflated the list in renderReel (if options < 5),
+            // we need to be careful.
+            
+            // Simplified approach: Just scroll to (loops * totalHeight) + (targetIndex * itemHeight)
+            // But since we don't know the exact "inflated" length here easily without passing it,
+            // let's rely on the DOM element's children.
+            
+            const totalItems = el.children.length; // Total rendered items (e.g. 100)
+            const itemHeight = 100; // Fixed in CSS
+            
+            // We want to land roughly in the middle-end of the strip
+            // Let's target the (totalItems - optionCount - (optionCount - targetIndex)) item?
+            // Simpler: Target index + (N * optionCount)
+            
+            // If optionCount is small, we need to multiply it to match the visual repeats
+            // Actually, `renderReel` just repeats the list `loopCount` (20) times or more.
+            // So we can safely target the 15th iteration.
+            
+            const targetIteration = 15;
+            const targetItemIndex = (targetIteration * optionCount) + targetIndex;
+            
+            // Adjust for centering: The container is 200px high, item is 100px.
+            // Center is at 100px. Item center is at 50px.
+            // transformY(0) puts item 0 at top.
+            // To center item X: - (X * 100) + (ContainerHeight/2 - ItemHeight/2)
+            const centerOffset = (200 / 2) - (100 / 2); // 50px
+            const totalScrollPixels = (targetItemIndex * itemHeight) - centerOffset;
+
+            el.style.transition = 'none'; 
+            el.style.transform = 'translateY(0)';
+            
+            // Force Reflow
+            void el.offsetWidth;
+            
+            el.style.transition = `transform ${duration}ms cubic-bezier(0.1, 0.7, 0.1, 1)`;
+            el.style.transform = `translateY(-${totalScrollPixels}px)`;
+        }
+        
+        // --- Scratch Lobby & Game (Fixed Logic with Counts) ---
+        let scratchWinner = null;
+        let scratchRevealedCount = 0;
+
+        function renderScratchLobby() {
+            const grid = document.getElementById('lobbyGrid');
+            grid.innerHTML = '';
+            
+            scratchTypes.forEach(card => {
+                const el = document.createElement('div');
+                el.className = `ticket-card theme-${card.theme}`;
+                el.onclick = () => selectScratchCard(card.id);
+                
+                let priceLabel = 'FREE';
+                if(card.priceFilter === 1) priceLabel = '$';
+                else if(card.priceFilter === 2) priceLabel = '$$';
+                else if(card.priceFilter === 3) priceLabel = '$$$';
+                else if(card.priceFilter === null) priceLabel = 'ALL';
+
+                el.innerHTML = `
+                    <div class="ticket-top">
+                        <div class="ticket-type-badge">${card.icon}</div>
+                        <div class="ticket-price-badge">${priceLabel}</div>
+                        <div class="ticket-icon">${card.icon}</div>
+                    </div>
+                    <div class="ticket-bottom">
+                        <div class="ticket-title">${card.name}</div>
+                        <div class="ticket-btn">點擊開始</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+        
+        function filterLobby(type, btn) {
+            document.querySelectorAll('.lobby-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function selectScratchCard(cardId) {
+            currentScratchConfig = scratchTypes.find(c => c.id === cardId);
+            if(!currentScratchConfig) return;
+
+            let pool = [];
+            if(currentScratchConfig.type === 'lunch') pool = appData.lunch.options;
+            else if(currentScratchConfig.type === 'drink') pool = appData.drink.options;
+            else if(currentScratchConfig.type === 'combo') pool = [...appData.lunch.options, ...appData.drink.options];
+            
+            if(currentScratchConfig.priceFilter) {
+                pool = pool.filter(o => o.priceLevel === currentScratchConfig.priceFilter);
+            }
+            
+            if(pool.length < 4) {
+                alert(`選項不足！您至少需要新增 4 個符合條件的選項才能遊玩。\n目前只有 ${pool.length} 個。`);
+                return;
+            }
+
+            document.getElementById('scratch-lobby').style.display = 'none';
+            document.getElementById('scratch-game-area').style.display = 'flex';
+            document.getElementById('gameTitle').innerText = currentScratchConfig.name;
+            document.getElementById('gameCardWrapper').style.borderColor = (currentScratchConfig.theme === 'gold' ? '#FFD700' : (currentScratchConfig.theme === 'silver' ? '#C0C0C0' : '#FF69B4'));
+
+            initScratchGame(pool);
+        }
+
+        function backToLobby() {
+            document.getElementById('scratch-game-area').style.display = 'none';
+            document.getElementById('scratch-lobby').style.display = 'flex';
+        }
+        
+        function initScratchGame(customPool = null) {
+            const grid = document.getElementById('scratchGrid');
+            grid.innerHTML = '';
+            document.getElementById('scratchMsg').innerHTML = '刮出 3 個相同圖案即中獎！';
+            document.getElementById('scratchMsg').style.color = 'white';
+            scratchRevealedCount = 0;
+            document.getElementById('resetScratchBtn').disabled = true;
+
+            let pool = customPool;
+            if(!pool) pool = appData.lunch.options;
+
+            const winner = pool[Math.floor(Math.random() * pool.length)];
+            scratchWinner = winner;
+            
+            const others = pool.filter(o => o.text !== winner.text);
+            
+            let items = [winner, winner, winner]; 
+            let currentCounts = {}; 
+            currentCounts[winner.text] = 3;
+
+            let fill = [];
+            let attempts = 0;
+            
+            while(fill.length < 6 && attempts < 200) { 
+                const pick = others[Math.floor(Math.random() * others.length)];
+                
+                const count = currentCounts[pick.text] || 0;
+                
+                if(count < 2) { // Allow max 2 per loser
+                    fill.push(pick);
+                    currentCounts[pick.text] = count + 1;
+                }
+                attempts++;
+            }
+            
+            while(fill.length < 6) {
+                 const pick = others[Math.floor(Math.random() * others.length)] || winner; 
+                 fill.push(pick);
+            }
+
+            items = items.concat(fill);
+            items.sort(() => Math.random() - 0.5);
+
+            items.forEach((item) => {
+                const cell = document.createElement('div');
+                cell.className = 'scratch-cell';
+                const contrastColor = getContrastYIQ(item.color);
+                
+                const content = document.createElement('div');
+                content.className = 'scratch-content';
+                content.style.background = item.color;
+                content.style.color = contrastColor;
+                content.innerText = item.text;
+                cell.appendChild(content);
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'scratch-canvas';
+                canvas.width = 150; canvas.height = 150;
+                canvas.dataset.revealed = "false";
+                cell.appendChild(canvas);
+
+                grid.appendChild(cell);
+
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = (currentScratchConfig && currentScratchConfig.theme === 'gold') ? '#FFD700' : '#C0C0C0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                let isDrawing = false;
+                const scratch = (x, y) => {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill(); 
+                    checkPercent(canvas, cell, item);
+                };
+                const getPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+                    return { x: ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * scaleX, y: ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * scaleY };
+                };
+                canvas.addEventListener('mousedown', (e) => { isDrawing = true; const p=getPos(e); scratch(p.x, p.y); });
+                canvas.addEventListener('mousemove', (e) => { if(isDrawing) { const p=getPos(e); scratch(p.x, p.y); } });
+                canvas.addEventListener('mouseup', () => isDrawing = false);
+                canvas.addEventListener('mouseleave', () => isDrawing = false);
+                canvas.addEventListener('touchstart', (e) => { isDrawing = true; e.preventDefault(); const p=getPos(e); scratch(p.x, p.y); });
+                canvas.addEventListener('touchmove', (e) => { if(isDrawing) { e.preventDefault(); const p=getPos(e); scratch(p.x, p.y); } });
+                canvas.addEventListener('touchend', () => isDrawing = false);
+            });
+            setTimeout(() => document.getElementById('resetScratchBtn').disabled = false, 1000);
+        }
+
+        function checkPercent(canvas, cell, item) {
+            if(canvas.dataset.revealed === "true") return;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            let cleared = 0;
+            for(let i = 3; i < data.length; i += 4) { if(data[i] === 0) cleared++; }
+            
+            if((cleared / (canvas.width * canvas.height)) > 0.10) {
+                canvas.classList.add('faded');
+                canvas.dataset.revealed = "true"; 
+                cell.querySelector('.scratch-content').style.opacity = '1'; 
+                
+                if(item.text === scratchWinner.text) {
+                    scratchRevealedCount++;
+                    if(scratchRevealedCount === 2) {
+                        const msg = document.getElementById('scratchMsg');
+                        msg.innerHTML = '🔥 只差 1 個...！'; msg.style.color = '#FFD700'; msg.classList.add('shake');
+                    }
+                    if(scratchRevealedCount === 3) {
+                        handleScratchWin();
+                    }
+                }
+            }
+        }
+
+        function handleScratchWin() {
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            playSound(winSound);
+            document.getElementById('scratchMsg').innerText = '🎉 恭喜中獎！ 🎉';
+            
+            const cells = document.querySelectorAll('.scratch-cell');
+            cells.forEach(cell => {
+                if(cell.innerText === scratchWinner.text) {
+                    cell.classList.add('winner-glow');
+                }
+            });
+
+            setTimeout(() => {
+                document.getElementById('finalResult').innerHTML = scratchWinner.text;
+                document.getElementById('finalResult').style.color = 'var(--text-main)';
+                currentResultForMaps = scratchWinner.text; 
+                document.getElementById('mapsBtnText').textContent = `帶我去吃 ${scratchWinner.text}`;
+                document.getElementById('resultModalOverlay').classList.add('active');
+                addToHistory(scratchWinner.text);
+            }, 800);
+        }
+
+        function easeOut(t, b, c, d) { const ts = (t/=d)*t; const tc = ts*t; return b+c*(tc + -3*ts + 3*t); }
+    </script>
+</body>
+</html>
