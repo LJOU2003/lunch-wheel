@@ -230,6 +230,11 @@
         .setting-btn.primary { background: var(--primary); color: white; border: none; }
         .setting-btn.primary:hover { background: var(--primary-hover); }
         .setting-btn.logout { margin-top: 5px; border-color: #9CA3AF; color: var(--text-main); background: rgba(255, 255, 255, 0.5); }
+        [data-theme="dark"] .setting-btn.logout {
+            background: rgba(255, 255, 255, 0.1);
+            color: #F1F5F9;
+            border-color: #475569;
+        }
         .setting-btn.logout:hover { background: var(--bg-input); border-color: var(--text-main); }
         .result-text { font-size: 2.5rem; color: var(--text-main); font-weight: 800; margin: 20px 0; }
         .modal-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1.1rem; }
@@ -1179,4 +1184,5 @@
 </body>
 
 </html>
+
 
