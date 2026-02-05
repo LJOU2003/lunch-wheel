@@ -913,7 +913,7 @@
                 document.getElementById('finalResult').innerHTML = `${lRes.text} + ${dRes.text}`;
                 document.getElementById('finalResult').style.color = 'var(--text-main)';
                 currentResultForMaps = lRes.text; 
-                document.getElementById('mapsBtnText').textContent = `帶我去吃 ${lRes.text}`;
+                document.getElementById('mapsBtnText').textContent = `尋找 ${lRes.text}`;
                 playSound(winSound);
                 confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
                 setTimeout(() => {
@@ -1173,7 +1173,7 @@
                 document.getElementById('finalResult').innerHTML = scratchWinner.text;
                 document.getElementById('finalResult').style.color = 'var(--text-main)';
                 currentResultForMaps = scratchWinner.text; 
-                document.getElementById('mapsBtnText').textContent = `帶我去吃 ${scratchWinner.text}`;
+                document.getElementById('mapsBtnText').textContent = `尋找 ${scratchWinner.text}`;
                 document.getElementById('resultModalOverlay').classList.add('active');
                 addToHistory(scratchWinner.text);
             }, 800);
@@ -1184,5 +1184,6 @@
 </body>
 
 </html>
+
 
 
